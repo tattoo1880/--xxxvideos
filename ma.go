@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 var wg sync.WaitGroup
@@ -154,7 +155,7 @@ func parseTs(url string) (nameList, tslit []string) {
 }
 
 func Dl(url, filename string) {
-	// defer wg.Done()
+	defer wg.Done()
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	HandleErrors(err, "获取ts请求失败")
@@ -217,6 +218,7 @@ func productors(kl []string, in chan<- string) {
 	defer wg.Done()
 	for _, url := range kl {
 		in <- url
+		time.Sleep(time.Millisecond * 10)
 	}
 	close(in)
 	// return in
@@ -230,7 +232,8 @@ func customers(out <-chan string) {
 		pp := strings.Split(v, "/")
 		name := pp[len(pp)-1:]
 		rename := name[0]
-		Dl(url, rename)
+		wg.Add(1)
+		go Dl(url, rename)
 	}
 }
 
@@ -255,7 +258,7 @@ func main() {
 	// 	// break
 	// }
 	// wg.Wait()
-	var ch chan string = make(chan string, 30)
+	var ch chan string = make(chan string, 25)
 	wg.Add(2)
 	go productors(finaUrl, ch)
 	go customers(ch)
