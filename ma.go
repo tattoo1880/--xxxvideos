@@ -218,7 +218,7 @@ func productors(kl []string, in chan<- string) {
 	defer wg.Done()
 	for _, url := range kl {
 		in <- url
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(time.Millisecond * 50)
 	}
 	close(in)
 	// return in
